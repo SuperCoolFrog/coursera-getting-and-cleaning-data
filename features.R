@@ -7,3 +7,7 @@ library(readr)
 
 # Get the labels
 features_f <- read.csv("features.txt", header = FALSE) # 6 rows
+
+
+
+#NEED TO remove NA from X_TRAIN_F column data
