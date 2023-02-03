@@ -1,5 +1,3 @@
-# cls <- function() { shell("cls")}
-# setwd("C:\\r-projects\\sandbox\\UCI HAR Dataset")
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -60,7 +58,7 @@ join_labels_x_y <- function(features_labels, y_labels, x_data, y_data) {
 # This only needs to be done once so I did not create helper functions
 
 # Get the labels
-activity_labels_f <- read.csv("activity_labels.txt", header = FALSE) # 6 rows
+activity_labels_f <- read.csv("./data/activity_labels.txt", header = FALSE) # 6 rows
 colnames(activity_labels_f) <- c("activitylabels")
 
 # Clean the labels
@@ -76,19 +74,19 @@ activity_labels <- as_tibble(activity_labels_split) %>% mutate(y = parse_number(
 #------------------------------------
 #   Features
 #------------------------------------
-features_f <- read.csv("features.txt", header = FALSE, sep = " ")
+features_f <- read.csv("./data/features.txt", header = FALSE, sep = " ")
 
 #------------------------------------
 #   X Train Data
 #------------------------------------
 
-x_train_clean <- parse_x_data_file("./train/X_train.txt")
+x_train_clean <- parse_x_data_file("./data/train/X_train.txt")
 
 #------------------------------------
 #   Y Train Data
 #------------------------------------
 
-y_train_clean <- parse_y_data_file("./train/Y_train.txt")
+y_train_clean <- parse_y_data_file("./data/train/Y_train.txt")
 
 #------------------------------------
 #   Tidy Train
@@ -99,13 +97,13 @@ tidy_train_data <- join_labels_x_y(features_f, activity_labels, x_train_clean, y
 #   X Test Data
 #------------------------------------
 
-x_test_clean <- parse_x_data_file("./test/X_test.txt")
+x_test_clean <- parse_x_data_file("./data/test/X_test.txt")
 
 #------------------------------------
 #   Y Test Data
 #------------------------------------
 
-y_test_clean <- parse_y_data_file("./test/Y_test.txt")
+y_test_clean <- parse_y_data_file("./data/test/Y_test.txt")
 
 #------------------------------------
 #   Tidy Test
@@ -133,4 +131,6 @@ all_data <- bind_rows(tidy_train_data_mean_std, tidy_test_data_mean_std)
 #------------------------------------
 # Calculate means for type, label, variables
 #------------------------------------
-data_means <- all_data %>% group_by(type, label) %>% summarize_all("mean")
+tidy_data <- all_data %>% group_by(type, label) %>% summarize_all("mean")
+
+write.table(tidy_data, "out/tidy_data.txt", row.name = FALSE)
