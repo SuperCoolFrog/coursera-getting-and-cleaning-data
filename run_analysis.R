@@ -6,37 +6,6 @@ library(readr)
 #------------------------------------
 #   Helpers
 #------------------------------------
-parse_x_data_file <- function(x_data_file) {
-    tmp <- tempfile(fileext = ".csv")
-
-    # read as char to clean up variable number of whitespaces
-    data_char <- readChar(x_data_file, file.info(x_data_file)$size)
-    data_char <- str_replace_all(data_char, "[ ]+", ",")
-
-    # Much faster to save file and read.csv rather than parse string manually
-    writeChar(data_char, tmp)
-
-    suppressWarnings({
-        # Expected warning is displayed.  First column is all null
-        x <- read.csv(tmp, header = FALSE) # 7352 rows
-    })
-    # remove temp file
-    unlink(tmp)
-
-    # File starts with whitespace which leads to empty first column
-    as_tibble(x[, -1])
-}
-
-parse_y_data_file <- function(y_data_file) {
-    y_train_csv <- read.csv(y_data_file, header = FALSE, sep = " ")
-    y_data <- as_tibble(y_train_csv)
-    # rename column to y so I can easily left join
-    colnames(y_data) <- c("y")
-    
-    # returns y data
-    y_data
-}
-
 join_labels_x_y <- function(features_labels, y_labels, x_data, y_data) {
     # need to keep id with feature name so that it remains unique
     unique_labels <- paste(features_labels[,1], features_labels[,2], sep = "__")
@@ -80,13 +49,14 @@ features_f <- read.csv("./data/features.txt", header = FALSE, sep = " ")
 #   X Train Data
 #------------------------------------
 
-x_train_clean <- parse_x_data_file("./data/train/X_train.txt")
+x_train_clean <- read.table("./data/train/X_train.txt", header = FALSE)
 
 #------------------------------------
 #   Y Train Data
 #------------------------------------
 
-y_train_clean <- parse_y_data_file("./data/train/Y_train.txt")
+y_train_clean <- read.table("./data/train/Y_train.txt", header = FALSE)
+colnames(y_train_clean) <- c("y")
 
 #------------------------------------
 #   Tidy Train
@@ -97,13 +67,14 @@ tidy_train_data <- join_labels_x_y(features_f, activity_labels, x_train_clean, y
 #   X Test Data
 #------------------------------------
 
-x_test_clean <- parse_x_data_file("./data/test/X_test.txt")
+x_test_clean <- read.table("./data/test/X_test.txt", header = FALSE)
 
 #------------------------------------
 #   Y Test Data
 #------------------------------------
 
-y_test_clean <- parse_y_data_file("./data/test/Y_test.txt")
+y_test_clean <- read.table("./data/test/Y_test.txt", header = FALSE)
+colnames(y_test_clean) <- c("y")
 
 #------------------------------------
 #   Tidy Test
