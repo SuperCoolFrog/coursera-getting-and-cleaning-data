@@ -111,3 +111,26 @@ y_test_clean <- parse_y_data_file("./test/Y_test.txt")
 #   Tidy Test
 #------------------------------------
 tidy_test_data <- join_labels_x_y(features_f, activity_labels, x_test_clean, y_test_clean)
+
+
+#------------------------------------
+#   Get label, mean, and std
+#   Add reference column
+#   Combine training and data
+#------------------------------------
+
+tidy_train_data_mean_std <- tidy_train_data %>%
+    select(label | contains("std") | (contains("mean") & !contains("meanFreq"))) %>%
+    mutate(type = "training", .after = label)
+
+tidy_test_data_mean_std <- tidy_test_data %>%
+    select(label | contains("std") | (contains("mean") & !contains("meanFreq"))) %>%
+    mutate(type = "test", .after = label)
+
+all_data <- bind_rows(tidy_train_data_mean_std, tidy_test_data_mean_std)
+
+
+#------------------------------------
+# Calculate means for type, label, variables
+#------------------------------------
+data_means <- all_data %>% group_by(type, label) %>% summarize_all("mean")
