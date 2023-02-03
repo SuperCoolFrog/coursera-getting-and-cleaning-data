@@ -39,14 +39,18 @@ parse_y_data_file <- function(y_data_file) {
     y_data
 }
 
-join_labels_x_y <- function(labels, x_data, y_data) {
+join_labels_x_y <- function(features_labels, y_labels, x_data, y_data) {
+    # need to keep id with feature name so that it remains unique
+    unique_labels <- paste(features_labels[,1], features_labels[,2], sep = "__")
+    colnames(x_data) <- unique_labels
+
     # combine the y and x values
     xy_data <- cbind(y_data, x_data) %>%
         as_tibble() 
 
     # y_data is thekey found in activity_labels
     # left_join sorts automatically but this should not cause issues
-    left_join(labels, xy_data, by = "y")
+    left_join(y_labels, xy_data, by = "y")
 }
 
 
@@ -70,6 +74,11 @@ colnames(activity_labels_split) <- c("y", "label") # label y so that I can left 
 activity_labels <- as_tibble(activity_labels_split) %>% mutate(y = parse_number(y), label = label)
 
 #------------------------------------
+#   Features
+#------------------------------------
+features_f <- read.csv("features.txt", header = FALSE, sep = " ")
+
+#------------------------------------
 #   X Train Data
 #------------------------------------
 
@@ -84,4 +93,21 @@ y_train_clean <- parse_y_data_file("./train/Y_train.txt")
 #------------------------------------
 #   Tidy Train
 #------------------------------------
-tidy_train_data <- join_labels_x_y(activity_labels, x_train_clean, y_train_clean)
+tidy_train_data <- join_labels_x_y(features_f, activity_labels, x_train_clean, y_train_clean)
+
+#------------------------------------
+#   X Test Data
+#------------------------------------
+
+x_test_clean <- parse_x_data_file("./test/X_test.txt")
+
+#------------------------------------
+#   Y Test Data
+#------------------------------------
+
+y_test_clean <- parse_y_data_file("./test/Y_test.txt")
+
+#------------------------------------
+#   Tidy Test
+#------------------------------------
+tidy_test_data <- join_labels_x_y(features_f, activity_labels, x_test_clean, y_test_clean)
