@@ -6,17 +6,19 @@ library(data.table)
 library(stringr)
 
 fileName <- "./train/X_train.txt"
+tmp <- tempfile(fileext = ".csv")
 
 mystring <- readChar(fileName, file.info(fileName)$size)
-mystring <- str_replace_all(mystring, "  ", ",")
-mystring <- str_replace_all(mystring, " ", ",")
+mystring <- str_replace_all(mystring, "[ ]+", ",")
+# mystring <- str_replace_all(mystring, " ", ",")
 
-writeChar(mystring, "x2.csv")
+writeChar(mystring, tmp)
 
-
-x <- read.csv("x2.csv", header = FALSE) # 7352 rows
-# Expected warning is displayed.  First column is all null
-
+suppressWarnings({
+    # Expected warning is displayed.  First column is all null
+    x <- read.csv(tmp, header = FALSE) # 7352 rows
+})
 x_clean <- as_tibble(x[, -1])
 
 print(dim(x_clean))
+unlink(tmp)

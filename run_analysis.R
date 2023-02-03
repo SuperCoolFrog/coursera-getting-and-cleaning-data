@@ -8,27 +8,30 @@ library(readr)
 #------------------------------------
 #   Helpers
 #------------------------------------
-parse_x_data_file <- function(x_data_f) {
-    # Remove extra white space
-    x_data_trimd <- sapply(x_data_f, str_trim)
+parse_x_data_file <- function(x_data_file) {
+    tmp <- tempfile(fileext = ".csv")
 
-    # split values into separate columns
-    x_data_split <- str_split(x_data_trimd, " ", simplify = TRUE)
+    # read as char to clean up variable number of whitespaces
+    data_char <- readChar(x_data_file, file.info(x_data_file)$size)
+    data_char <- str_replace_all(data_char, "[ ]+", ",")
 
-    # rename columns so I can use as_tibble
-    colnames(x_data_split) <- sapply(1:ncol(x_data_split), function(c) {
-        paste("x", c, sep = "")
+    # Much faster to save file and read.csv rather than parse string manually
+    writeChar(data_char, tmp)
+
+    suppressWarnings({
+        # Expected warning is displayed.  First column is all null
+        x <- read.csv(tmp, header = FALSE) # 7352 rows
     })
+    # remove temp file
+    unlink(tmp)
 
-    # make tibble so I can mutate characters to numbers
-    x_data_char_vecs <- as_tibble(x_data_split)
-    
-    # returns table with numeric values
-    x_data_char_vecs %>% mutate_if(is.character, parse_number)
+    # File starts with whitespace which leads to empty first column
+    as_tibble(x[, -1])
 }
 
-parse_y_data_file <- function(y_data_f) {
-    y_data <- as_tibble(y_data_f)
+parse_y_data_file <- function(y_data_file) {
+    y_train_csv <- read.csv(y_data_file, header = FALSE, sep = " ")
+    y_data <- as_tibble(y_train_csv)
     # rename column to y so I can easily left join
     colnames(y_data) <- c("y")
     
@@ -42,6 +45,7 @@ join_labels_x_y <- function(labels, x_data, y_data) {
         as_tibble() 
 
     # y_data is thekey found in activity_labels
+    # left_join sorts automatically but this should not cause issues
     left_join(labels, xy_data, by = "y")
 }
 
@@ -49,6 +53,7 @@ join_labels_x_y <- function(labels, x_data, y_data) {
 #------------------------------------
 #   Activity Labels
 #------------------------------------
+# This only needs to be done once so I did not create helper functions
 
 # Get the labels
 activity_labels_f <- read.csv("activity_labels.txt", header = FALSE) # 6 rows
@@ -68,15 +73,13 @@ activity_labels <- as_tibble(activity_labels_split) %>% mutate(y = parse_number(
 #   X Train Data
 #------------------------------------
 
-x_train_f <- read.csv("./train/X_train.txt", header = FALSE, sep = "\n") # 7352 rows
-x_train_clean <- parse_x_data_file(x_train_f)
+x_train_clean <- parse_x_data_file("./train/X_train.txt")
 
 #------------------------------------
 #   Y Train Data
 #------------------------------------
 
-y_train_f <- read.csv("./train/Y_train.txt", header = FALSE, sep = " ")
-y_train_clean <- parse_y_data_file(y_train_f)
+y_train_clean <- parse_y_data_file("./train/Y_train.txt")
 
 #------------------------------------
 #   Tidy Train
