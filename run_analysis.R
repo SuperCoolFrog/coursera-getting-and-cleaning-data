@@ -27,23 +27,13 @@ join_labels_x_y <- function(features_labels, y_labels, x_data, y_data) {
 # This only needs to be done once so I did not create helper functions
 
 # Get the labels
-activity_labels_f <- read.csv("./data/activity_labels.txt", header = FALSE) # 6 rows
-colnames(activity_labels_f) <- c("activitylabels")
-
-# Clean the labels
-## trim extra space
-activity_labels_trimd <- sapply(activity_labels_f$activitylabels, str_trim)
-## split out id and label
-activity_labels_split <- str_split_fixed(activity_labels_trimd, " ", 2)
-colnames(activity_labels_split) <- c("y", "label") # label y so that I can left join
-
-# The working matrix with id as number and label as char
-activity_labels <- as_tibble(activity_labels_split) %>% mutate(y = parse_number(y), label = label)
+activity_labels <- read.table("./data/activity_labels.txt", header = FALSE) # 6 rows
+colnames(activity_labels) <- c("y", "label") # label y so that I can left join
 
 #------------------------------------
 #   Features
 #------------------------------------
-features_f <- read.csv("./data/features.txt", header = FALSE, sep = " ")
+features_f <- read.table("./data/features.txt", header = FALSE, sep = " ")
 
 #------------------------------------
 #   X Train Data
